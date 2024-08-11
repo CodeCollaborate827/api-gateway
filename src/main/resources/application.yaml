@@ -3,21 +3,27 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
       routes:
         - id: user-service-route
-          uri: lb://user-service/api/user
+          uri: lb://USER-SERVICE
           predicates:
-            - Path=/api/user/{segment}
+            - Path=/api/user/**
         - id: auth-service-route
-          uri: lb://auth-service/api/user
+          uri: lb://AUTH-SERVICE
           predicates:
-            - Path=/api/auth/{segment}
-
-
+            - Path=/api/auth/**
 eureka:
   client:
-    service-url:
+    serviceUrl:
       defaultZone: http://localhost:8761/eureka/
 
+server:
+  port: 8080
 
+jwt:
+  secret-key: 462D4A614E645267556B58703272357538782F413F4428472B4B625065536856
 
