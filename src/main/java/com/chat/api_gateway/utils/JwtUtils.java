@@ -4,12 +4,11 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.function.Function;
+import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 public class JwtUtils {
@@ -22,10 +21,10 @@ public class JwtUtils {
   }
 
   public String extractUserID(String jwt) {
-    Function<Claims, String> claimsStringFunction = claims -> claims.get(Claims.SUBJECT, String.class);
+    Function<Claims, String> claimsStringFunction =
+        claims -> claims.get(Claims.SUBJECT, String.class);
     return extractClaim(jwt, claimsStringFunction);
   }
-
 
   private <T> T extractClaim(String jwt, Function<Claims, T> claimsResolver) {
     final Claims claims = extractAllClaims(jwt);
@@ -46,18 +45,15 @@ public class JwtUtils {
   }
 
   public boolean validateAccessToken(String jwt) {
-//    final String userAgent = extractUserAgent(jwt);
-//    final String ipAddress = extractIpAddress(jwt);
+    //    final String userAgent = extractUserAgent(jwt);
+    //    final String ipAddress = extractIpAddress(jwt);
     final String userId = extractUserID(jwt);
 
-
-     if (isTokenExpired(jwt)) {
+    if (isTokenExpired(jwt)) {
       return false;
     }
     return true;
   }
-
-
 
   public boolean isTokenExpired(String jwt) {
     return extractExpiration(jwt).before(new Date());

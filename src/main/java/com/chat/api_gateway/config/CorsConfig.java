@@ -14,32 +14,32 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-
 @Configuration
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 @EnableWebFlux
 public class CorsConfig implements WebFluxConfigurer {
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowCredentials(false)
-                .allowedOrigins("*")
-                .allowedHeaders("*")
-                .allowedMethods("*");
-    }
+  @Override
+  public void addCorsMappings(CorsRegistry registry) {
+    registry
+        .addMapping("/**")
+        .allowCredentials(false)
+        .allowedOrigins("*")
+        .allowedHeaders("*")
+        .allowedMethods("*");
+  }
 
-    @Bean
-    public CorsWebFilter corsWebFilter() {
+  @Bean
+  public CorsWebFilter corsWebFilter() {
 
-        // Disable per-request CORS
+    // Disable per-request CORS
 
-        return new CorsWebFilter(new UrlBasedCorsConfigurationSource()) {
-            @Override
-            @NotNull
-            public Mono<Void> filter(@NotNull ServerWebExchange exchange, @NotNull WebFilterChain chain) {
-                return chain.filter(exchange);
-            }
-        };
-    }
+    return new CorsWebFilter(new UrlBasedCorsConfigurationSource()) {
+      @Override
+      @NotNull
+      public Mono<Void> filter(@NotNull ServerWebExchange exchange, @NotNull WebFilterChain chain) {
+        return chain.filter(exchange);
+      }
+    };
+  }
 }

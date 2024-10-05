@@ -22,13 +22,12 @@ import java.util.UUID;
 @Slf4j
 public class AuthenticationFilter implements GlobalFilter, Ordered {
 
-
   private final JwtUtils jwtUtils;
   private final String USER_ID = "userId";
   private final String REQUEST_ID = "requestId";
 
-
-  private static final List<String> UN_PROTECTED_ROUTES = List.of(
+  private static final List<String> UN_PROTECTED_ROUTES =
+      List.of(
           "/api/auth/login",
           "/api/auth/register",
           "/api/auth/login-oauth",
@@ -36,45 +35,42 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
           "/api/auth/resend-verification-email",
           "/api/auth/forgot-password",
           "/api/auth/reset-password",
-
-
           "/api/auth/health",
-          "/api/user/health"
+          "/api/user/health");
 
-  );
+  @Override
+  public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    // continue if the endpoint doesn't need authentication
 
-    @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-      // continue if the endpoint doesn't need authentication
-
-
-      if (isUnauthenticatedRoute(exchange.getRequest())) {
-        log.info("Authentication is not required");
-        return chain.filter(exchange);
-      }
-
-      // extract and valid jwt form AUTHORIZATION header
-      ServerHttpRequest request = exchange.getRequest();
-      // extract the jwt from the header and validate it
-      if (!checkValidJwt(request)) {
-        ServerHttpResponse response = exchange.getResponse();
-        response.setStatusCode(HttpStatus.UNAUTHORIZED);
-        return response.setComplete();
-      }
-
-
-      log.info("here");
-      // if the jwt valid, set the userId to the token
-      String userId = extractUserIdFromJwt(request);
-
-      //TODO: handle exception
-      ServerHttpRequest mutated = exchange.getRequest().mutate()
-              .header(USER_ID, userId)
-              .header(REQUEST_ID, UUID.randomUUID().toString())
-              .build();
-
-      return chain.filter(exchange.mutate().request(mutated).build());
+    if (isUnauthenticatedRoute(exchange.getRequest())) {
+      log.info("Authentication is not required");
+      return chain.filter(exchange);
     }
+
+    // extract and valid jwt form AUTHORIZATION header
+    ServerHttpRequest request = exchange.getRequest();
+    // extract the jwt from the header and validate it
+    if (!checkValidJwt(request)) {
+      ServerHttpResponse response = exchange.getResponse();
+      response.setStatusCode(HttpStatus.UNAUTHORIZED);
+      return response.setComplete();
+    }
+
+    log.info("here");
+    // if the jwt valid, set the userId to the token
+    String userId = extractUserIdFromJwt(request);
+
+    // TODO: handle exception
+    ServerHttpRequest mutated =
+        exchange
+            .getRequest()
+            .mutate()
+            .header(USER_ID, userId)
+            .header(REQUEST_ID, UUID.randomUUID().toString())
+            .build();
+
+    return chain.filter(exchange.mutate().request(mutated).build());
+  }
 
   private boolean checkValidJwt(ServerHttpRequest request) {
     boolean authorizationHeaderExists = request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION);
@@ -83,13 +79,23 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
       return false;
     }
 
-    String jwt = request.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0).substring(7); // remove the word Bearer
+    String jwt =
+        request
+            .getHeaders()
+            .get(HttpHeaders.AUTHORIZATION)
+            .get(0)
+            .substring(7); // remove the word Bearer
     log.info("jwt: ", jwt);
     return jwtUtils.validateAccessToken(jwt);
   }
 
-  private String extractUserIdFromJwt(ServerHttpRequest request ) {
-    String jwt = request.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0).substring(7); // remove the word Bearer
+  private String extractUserIdFromJwt(ServerHttpRequest request) {
+    String jwt =
+        request
+            .getHeaders()
+            .get(HttpHeaders.AUTHORIZATION)
+            .get(0)
+            .substring(7); // remove the word Bearer
     return jwtUtils.extractUserID(jwt);
   }
 
@@ -100,7 +106,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
   }
 
   @Override
-    public int getOrder() {
-        return -1;
-    }
+  public int getOrder() {
+    return -1;
+  }
 }
