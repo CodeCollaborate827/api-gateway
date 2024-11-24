@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +26,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
   private final JwtUtils jwtUtils;
   private final String USER_ID = "userId";
   private final String REQUEST_ID = "requestId";
+  private final String CLIENT_IP = "clientIp";
 
   private static final List<String> UN_PROTECTED_ROUTES =
       List.of(
@@ -56,7 +58,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
       return response.setComplete();
     }
 
-    log.info("here");
+
     // if the jwt valid, set the userId to the token
     String userId = extractUserIdFromJwt(request);
 
@@ -67,9 +69,18 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             .mutate()
             .header(USER_ID, userId)
             .header(REQUEST_ID, UUID.randomUUID().toString())
+            .header(CLIENT_IP, extractClientIp(exchange))
             .build();
 
     return chain.filter(exchange.mutate().request(mutated).build());
+  }
+
+  private String extractClientIp(ServerWebExchange exchange) {
+    InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
+    if (remoteAddress != null) {
+      return remoteAddress.getAddress().getHostAddress();
+    }
+    return null;
   }
 
   private boolean checkValidJwt(ServerHttpRequest request) {
@@ -85,7 +96,6 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             .get(HttpHeaders.AUTHORIZATION)
             .get(0)
             .substring(7); // remove the word Bearer
-    log.info("jwt: ", jwt);
     return jwtUtils.validateAccessToken(jwt);
   }
 
@@ -101,7 +111,6 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
   private static boolean isUnauthenticatedRoute(ServerHttpRequest request) {
     String path = request.getURI().getPath();
-    log.info("path: {}", path);
     return UN_PROTECTED_ROUTES.contains(path);
   }
 

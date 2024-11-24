@@ -26,6 +26,10 @@ spring:
           uri: lb://MESSAGING-SERVICE
           predicates:
             - Path=/api/messaging/**
+        - id: ws-hub-service-route
+          uri: lb://WS-HUB
+          predicates:
+            - Path=/websocket/**
 eureka:
   client:
     serviceUrl:
